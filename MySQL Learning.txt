@@ -1,0 +1,29 @@
+# Create Table
+CREATE TABLE broker_shares (StockID VARCHAR(5), Broker_ID VARCHAR(100), Broker_Name VARCHAR(100), Date DATE, Shares BIGINT, Percent FLOAT)
+create table if not exists HK00011 (StockID VARCHAR(5), Broker_ID VARCHAR(100), Broker_Name VARCHAR(100), Date DATE, Shares BIGINT, Percent FLOAT);
+
+# Remove Duplication
+CREATE TABLE tmp SELECT * FROM broker_shares GROUP BY StockID, Broker_ID, Broker_Name, Date, Shares, Percent;
+DROP TABLE broker_shares;
+ALTER TABLE tmp RENAME TO broker_shares;
+
+# List Column Names
+show columns from broker_shares;
+# Select StockID and Date
+select StockID, Date from broker_shares group by StockID, Date;
+# Select Date (non-Duplication)
+select distinct Date from broker_shares group by StockID, Date order by Date desc; asc
+# Select StockID between Dates
+select * from broker_shares where StockID='06863' and Date between '2017-06-01' and '2017-06-06';
+create table sub_info select * from broker_shares where StockID='06863' and Date between '2017-06-01' and '2017-06-06';
+select min(Shares), max(Shares) from broker_shares where StockID='06863' and Broker_ID='B01965' and Date between '2017-06-01' and '2017-06-06';
+# Create Table as Index group by StockID and Date
+create table stockid_date_index select StockID, Date from broker_shares group by StockID, Date;
+
+# Connect from Python
+import MySQLdb
+conn = MySQLdb.connect(host = 'localhost', db = 'ccass_db', user = 'root', passwd = 'toor', charset = 'utf8', use_unicode = True)
+cursor = conn.cursor()
+cursor.execute('SELECT StockID, Date FROM broker_shares GROUP BY StockID, Date')
+results = cursor.fetchall()
+conn.close()
